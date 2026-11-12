@@ -13,8 +13,7 @@ Toate materialele, discursurile și exemplele din acest proiect sunt elaborate �
   - Programul de lectură **„Chișinăul citește”** (cărțile anului pentru copii, adolescenți și adulți);
   - **„Bătălia Cărților”**, **„Provocarea verii”**, **„Noaptea Bibliotecilor”**, **„Ora poveștilor”**;
   - Servicii moderne, ateliere STEAM/IT, *makerspace*, educație media și digitală pentru toate vârstele (copii, tineri, seniori).
-- **Patrimoniu local și publicații:**
-  - **Departamentul „Memoria Chișinăului”** (valorificarea istoriei, arhitecturii, personalităților și memoriei culturale a orașului Chișinău);
+- **Publicații și sisteme:**
   - Revista de biblioteconomie și științe ale informării **„BiblioPolis”**;
   - Catalogul electronic al BM „B.P. Hasdeu” (OPAC).
 
