@@ -38,7 +38,9 @@ class PocketBaseClient {
         this.authPromise = null;
         this.eventSource = null;
         this.clientId = null;
-        this.subscriptions = new Map(); // topic -> callbacks
+        this.subscriptions = new Map(); // topic -> callback
+        this.activeTopics = new Set();
+        this.onStatusChange = null;
 
         this._loadCachedToken();
     }
@@ -163,7 +165,8 @@ class PocketBaseClient {
             return null;
         }
 
-        if (res.status === 401 && !isRetry && !isAuthEndpoint) {
+        // Auto-refresh token and retry on 401 or 403 (expired/stale token)
+        if ((res.status === 401 || res.status === 403) && !isRetry && !isAuthEndpoint) {
             this._clearCachedToken();
             await this.authenticate(true);
             return this.request(path, options, true);
@@ -237,18 +240,34 @@ class PocketBaseClient {
     }
 
     /**
-     * Subscribe to one or multiple collection topics with realtime SSE
+     * Subscribe to collection topic with realtime SSE
      */
     subscribe(topic, onMessage, onStatusChange) {
         this.subscriptions.set(topic, onMessage);
-        this._ensureRealtimeConnected(onStatusChange);
+        if (onStatusChange) {
+            this.onStatusChange = onStatusChange;
+        }
+
+        if (this.eventSource && this.eventSource.readyState === EventSource.OPEN) {
+            if (!this.activeTopics.has(topic)) {
+                this.activeTopics.add(topic);
+                this.eventSource.addEventListener(topic, (evt) => this._dispatch(evt));
+            }
+            if (this.clientId) {
+                this._submitSubscriptions();
+            }
+        } else {
+            this._ensureRealtimeConnected();
+        }
     }
 
     unsubscribe(topic) {
         if (topic) {
             this.subscriptions.delete(topic);
+            this.activeTopics.delete(topic);
         } else {
             this.subscriptions.clear();
+            this.activeTopics.clear();
         }
 
         if (this.subscriptions.size === 0 && this.eventSource) {
@@ -258,15 +277,18 @@ class PocketBaseClient {
         }
     }
 
-    _ensureRealtimeConnected(onStatusChange) {
-        if (this.eventSource && this.eventSource.readyState === EventSource.OPEN) {
-            this._submitSubscriptions();
-            return;
+    _dispatch(evt) {
+        try {
+            const payload = JSON.parse(evt.data);
+            const cb = this.subscriptions.get(evt.type) || this.subscriptions.get('*');
+            if (cb) cb(payload);
+        } catch {
+            // Ignore parse error
         }
+    }
 
-        if (this.eventSource) {
-            this.eventSource.close();
-        }
+    _ensureRealtimeConnected() {
+        if (this.eventSource) return;
 
         try {
             const es = new EventSource(`${this.baseUrl}/api/realtime`);
@@ -277,32 +299,23 @@ class PocketBaseClient {
                     const payload = JSON.parse(event.data);
                     this.clientId = payload.clientId;
                     await this._submitSubscriptions();
-                    if (onStatusChange) onStatusChange('live');
+                    if (this.onStatusChange) this.onStatusChange('live');
                 } catch {
-                    if (onStatusChange) onStatusChange('connected');
+                    if (this.onStatusChange) this.onStatusChange('connected');
                 }
             });
 
-            // Listen to each subscribed topic
-            const dispatch = (evt) => {
-                try {
-                    const payload = JSON.parse(evt.data);
-                    const cb = this.subscriptions.get(evt.type) || this.subscriptions.get('*');
-                    if (cb) cb(payload);
-                } catch (e) {
-                    // Ignore parse error
-                }
-            };
-
+            // Register all current topics
             for (const t of this.subscriptions.keys()) {
-                es.addEventListener(t, dispatch);
+                this.activeTopics.add(t);
+                es.addEventListener(t, (evt) => this._dispatch(evt));
             }
 
             es.onerror = () => {
-                if (onStatusChange) onStatusChange('reconnecting');
+                if (this.onStatusChange) this.onStatusChange('reconnecting');
             };
         } catch {
-            if (onStatusChange) onStatusChange('connected');
+            if (this.onStatusChange) this.onStatusChange('connected');
         }
     }
 

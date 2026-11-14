@@ -234,6 +234,20 @@ html, body {
 
 .connection-pill.online {
     color: #16A34A;
+    border-color: rgba(22, 163, 74, 0.4);
+    background-color: rgba(22, 163, 74, 0.08);
+}
+
+.connection-pill.connecting {
+    color: #D97706;
+    border-color: rgba(217, 119, 6, 0.4);
+    background-color: rgba(217, 119, 6, 0.08);
+}
+
+.connection-pill.offline {
+    color: #DC2626;
+    border-color: rgba(220, 38, 38, 0.4);
+    background-color: rgba(220, 38, 38, 0.08);
 }
 
 .status-dot {
@@ -245,6 +259,10 @@ html, body {
 
 .connection-pill.online .status-dot {
     box-shadow: 0 0 8px #16A34A;
+}
+
+.connection-pill.connecting .status-dot {
+    box-shadow: 0 0 8px #D97706;
 }
 
 .theme-toggle-btn {

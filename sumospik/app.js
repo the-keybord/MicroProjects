@@ -304,13 +304,18 @@
 
     // --- Connection Status ---
     function setConnectionStatus(status) {
-        el.connectionPill.classList.remove('online');
+        el.connectionPill.classList.remove('online', 'connecting', 'offline');
         if (status === 'live' || status === 'connected') {
             el.connectionPill.classList.add('online');
             el.connectionLabel.textContent = status === 'live' ? 'Live SSE' : 'Connected';
+        } else if (status === 'connecting') {
+            el.connectionPill.classList.add('connecting');
+            el.connectionLabel.textContent = 'Connecting...';
         } else if (status === 'reconnecting') {
+            el.connectionPill.classList.add('connecting');
             el.connectionLabel.textContent = 'Syncing...';
         } else {
+            el.connectionPill.classList.add('offline');
             el.connectionLabel.textContent = 'Offline';
         }
     }
@@ -329,8 +334,9 @@
             subscribeRealtime();
         } catch (err) {
             console.error('[SumoSpik Init Error]', err);
-            showToast('Database connection error. Retrying...');
-            setConnectionStatus('offline');
+            showToast('Reconnecting to database...');
+            setConnectionStatus('reconnecting');
+            setTimeout(initApp, 2500);
         }
     }
 
@@ -350,10 +356,16 @@
 
     async function loadChampionships() {
         try {
-            const res = await pb.listRecords(SUMOSPIK.championships, {
-                perPage: 100,
-                sort: '-created'
-            });
+            let res;
+            try {
+                res = await pb.listRecords(SUMOSPIK.championships, {
+                    perPage: 100,
+                    sort: '-created'
+                });
+            } catch (sortErr) {
+                console.warn('Sort -created failed, trying default sort:', sortErr);
+                res = await pb.listRecords(SUMOSPIK.championships, { perPage: 100 });
+            }
 
             state.championships = res.items || [];
 
@@ -376,12 +388,16 @@
 
             renderChampionshipDropdown();
 
-            // Select championship from localStorage or first one
+            // Select championship from localStorage, or prefer the user's active one
             const savedId = localStorage.getItem('sumospik_current_champ_id');
             const found = state.championships.find((c) => c.id === savedId);
-            await selectChampionship(found ? found.id : state.championships[0].id);
+
+            // Prefer savedId if found; otherwise prefer the latest active championship
+            const targetChamp = found || state.championships[0];
+            await selectChampionship(targetChamp.id);
         } catch (err) {
             console.error('Error loading championships:', err);
+            throw err;
         }
     }
 
