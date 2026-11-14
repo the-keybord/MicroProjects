@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MicroProjects Hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0B1120;
+            --surface: #1E293B;
+            --surface-hover: #334155;
+            --border: #334155;
+            --text: #F8FAFC;
+            --muted: #94A3B8;
+            --primary: #38BDF8;
+            --accent-red: #EF4444;
+            --accent-blue: #3B82F6;
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            text-align: center;
+        }
+
+        .header-icon {
+            font-size: 3rem;
+            margin-bottom: 12px;
+            display: inline-block;
+        }
+
+        h1 {
+            font-size: 2.4rem;
+            font-weight: 900;
+            letter-spacing: -0.03em;
+            margin-bottom: 8px;
+        }
+
+        p.subtitle {
+            font-size: 1.05rem;
+            color: var(--muted);
+            margin-bottom: 36px;
+        }
+
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+            gap: 24px;
+            text-align: left;
+        }
+
+        .project-card {
+            background-color: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 28px;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .project-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--primary);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .card-top {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .card-icon {
+            width: 54px;
+            height: 54px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            background-color: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .card-titles {
+            flex: 1;
+        }
+
+        .card-title {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 2px;
+        }
+
+        .card-tag {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--primary);
+        }
+
+        .card-desc {
+            font-size: 0.925rem;
+            color: var(--muted);
+            line-height: 1.55;
+            margin-bottom: 20px;
+        }
+
+        .card-features {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 0.825rem;
+            color: #CBD5E1;
+            margin-bottom: 24px;
+        }
+
+        .card-features li::before {
+            content: "✓ ";
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .btn-launch {
+            align-self: flex-start;
+            padding: 10px 20px;
+            border-radius: 9999px;
+            background-color: var(--primary);
+            color: #0F172A;
+            font-weight: 700;
+            font-size: 0.875rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: filter 0.15s ease;
+        }
+
+        .project-card:hover .btn-launch {
+            filter: brightness(1.15);
+        }
+
+        footer {
+            margin-top: 48px;
+            font-size: 0.825rem;
+            color: var(--muted);
+        }
+
+        footer code {
+            background-color: var(--surface);
+            padding: 3px 8px;
+            border-radius: 6px;
+            color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header-icon">🚀</div>
+        <h1>MicroProjects Hub</h1>
+        <p class="subtitle">Self-contained, Material Design 3 apps backed by PocketBase</p>
+
+        <div class="projects-grid">
+
+            <!-- SumoSpik Project Card -->
+            <a href="/sumospik/" class="project-card">
+                <div>
+                    <div class="card-top">
+                        <div class="card-icon" style="background-color: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.3);">🥋</div>
+                        <div class="card-titles">
+                            <div class="card-tag">prefix: sumospik_</div>
+                            <h2 class="card-title">SumoSpik</h2>
+                        </div>
+                    </div>
+                    <p class="card-desc">
+                        Sumobot scoring and tournament engine. Manage multiple championships, auto-generate round-robin schedules, score live matches mat-side with countdown timer, and track live standings.
+                    </p>
+                    <ul class="card-features">
+                        <li>Multiple championships in one app</li>
+                        <li>Automated Berger Round Robin pairing</li>
+                        <li>Live Dohyo Referee Ring Console with synthesized audio</li>
+                        <li>Real-time points & leaderboard table</li>
+                    </ul>
+                </div>
+                <div class="btn-launch">Open SumoSpik →</div>
+            </a>
+
+            <!-- RFcolor Project Card -->
+            <a href="/RFcolor/" class="project-card">
+                <div>
+                    <div class="card-top">
+                        <div class="card-icon" style="background-color: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3);">🎨</div>
+                        <div class="card-titles">
+                            <div class="card-tag">prefix: RFALL_</div>
+                            <h2 class="card-title">RF Alliance Roster</h2>
+                        </div>
+                    </div>
+                    <p class="card-desc">
+                        Minimalist, high-density 30-colored cards roster. Centered alliance logos directly on cards, instant hover details popover, occupied filter, and CSV sync.
+                    </p>
+                    <ul class="card-features">
+                        <li>Clean 30 colored cards grid on one screen</li>
+                        <li>High-res centered logos straight on cards</li>
+                        <li>Hover popover for members and robots</li>
+                        <li>Realtime PocketBase SSE synchronization</li>
+                    </ul>
+                </div>
+                <div class="btn-launch">Open Alliance Roster →</div>
+            </a>
+
+        </div>
+
+        <footer>
+            Running locally on <code>http://localhost:8080</code> · Connected to <code>https://db.zece.info</code>
+        </footer>
+    </div>
+
+</body>
+</html>
