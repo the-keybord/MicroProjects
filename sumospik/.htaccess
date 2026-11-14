@@ -1,0 +1,10 @@
+DirectoryIndex index.php index.html
+
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+</IfModule>
+
+<FilesMatch "^\.pb_token\.json|^\.env">
+    Order allow,deny
+    Deny from all
+</FilesMatch>

@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SumoSpik — Sumobot Scoring & Tournament Engine</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Top App Bar -->
+    <header class="top-app-bar">
+        <div class="brand-section">
+            <div class="brand-logo-badge">🥋</div>
+            <div class="brand-info">
+                <span class="brand-title">SumoSpik</span>
+                <span class="brand-subtitle">Sumobot Scoring & Tournament Engine</span>
+            </div>
+        </div>
+
+        <!-- Championship Switcher Dropdown -->
+        <div class="champ-selector-wrap">
+            <span style="font-size: 1rem;">🏆</span>
+            <select id="champ-select" class="champ-select" aria-label="Select Championship">
+                <option value="" disabled selected>Loading championships...</option>
+            </select>
+            <div class="champ-actions">
+                <button id="btn-new-champ" class="btn-icon-sm" title="Create New Championship">＋</button>
+                <button id="btn-edit-champ" class="btn-icon-sm" title="Edit Current Championship">⚙</button>
+            </div>
+        </div>
+
+        <div class="top-bar-right">
+            <div id="connection-status" class="connection-pill">
+                <span class="status-dot"></span>
+                <span id="connection-label">Connecting</span>
+            </div>
+            <button id="btn-theme" class="theme-toggle-btn" title="Toggle Theme" aria-label="Toggle theme">
+                <span id="theme-icon">🌓</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs-bar" role="tablist">
+        <button id="tab-matches-btn" class="tab-btn active" role="tab" aria-selected="true">
+            🥊 Matches Grid <span id="badge-matches-count" class="tab-count">0</span>
+        </button>
+        <button id="tab-standings-btn" class="tab-btn" role="tab" aria-selected="false">
+            🏆 Standings & Rank <span id="badge-standings-count" class="tab-count">0</span>
+        </button>
+        <button id="tab-teams-btn" class="tab-btn" role="tab" aria-selected="false">
+            🤖 Teams <span id="badge-teams-count" class="tab-count">0</span>
+        </button>
+        <button id="tab-settings-btn" class="tab-btn" role="tab" aria-selected="false">
+            ⚙️ Rules & Settings
+        </button>
+    </nav>
+
+    <!-- Main Container -->
+    <main class="app-container">
+
+        <!-- 1. MATCHES GRID VIEW -->
+        <section id="view-matches" class="tab-view active">
+            <div class="section-toolbar">
+                <div class="toolbar-left">
+                    <select id="filter-round" class="select-input" aria-label="Filter by round">
+                        <option value="all">All Rounds</option>
+                    </select>
+                    <select id="filter-status" class="select-input" aria-label="Filter by status">
+                        <option value="all">All Statuses</option>
+                        <option value="scheduled">Scheduled</option>
+                        <option value="live">Live / In Progress</option>
+                        <option value="finished">Finished</option>
+                    </select>
+                    <input type="text" id="search-matches" class="text-input" placeholder="🔍 Search team / robot...">
+                </div>
+                <div class="toolbar-right">
+                    <button id="btn-open-generate" class="btn btn-primary">⚡ Generate Schedule</button>
+                    <button id="btn-add-match" class="btn btn-tonal">+ Add Match</button>
+                </div>
+            </div>
+
+            <!-- Matches Cards Grid -->
+            <div id="matches-grid" class="matches-grid">
+                <!-- Dynamically injected match cards -->
+            </div>
+
+            <!-- Empty State for Matches -->
+            <div id="matches-empty" class="empty-state" style="display: none;">
+                <div class="empty-icon">🥊</div>
+                <div class="empty-title">No matches found</div>
+                <p>Add teams and click <strong>"Generate Schedule"</strong> to automatically create tournament matches.</p>
+            </div>
+        </section>
+
+        <!-- 2. STANDINGS VIEW -->
+        <section id="view-standings" class="tab-view">
+            <div class="section-toolbar">
+                <div class="toolbar-left">
+                    <h2 style="margin: 0; font-size: 1.25rem; font-weight: 800;">Championship Leaderboard</h2>
+                </div>
+                <div class="toolbar-right">
+                    <button id="btn-recalc-standings" class="btn btn-tonal">🔄 Recalculate Points</button>
+                </div>
+            </div>
+
+            <div class="standings-card">
+                <div class="standings-table-wrap">
+                    <table class="standings-table">
+                        <thead>
+                            <tr>
+                                <th style="text-align: center;">Rank</th>
+                                <th>Team & Robot</th>
+                                <th>Club / Affiliation</th>
+                                <th style="text-align: center;">MP</th>
+                                <th style="text-align: center;">W</th>
+                                <th style="text-align: center;">L</th>
+                                <th style="text-align: center;">D</th>
+                                <th style="text-align: center;">Rounds</th>
+                                <th style="text-align: center;">Diff</th>
+                                <th style="text-align: center;">PTS</th>
+                            </tr>
+                        </thead>
+                        <tbody id="standings-tbody">
+                            <!-- Dynamically injected standings rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="standings-empty" class="empty-state" style="display: none;">
+                <div class="empty-icon">🏆</div>
+                <div class="empty-title">No standings yet</div>
+                <p>Add teams to view the leaderboard table.</p>
+            </div>
+        </section>
+
+        <!-- 3. TEAMS VIEW -->
+        <section id="view-teams" class="tab-view">
+            <div class="section-toolbar">
+                <div class="toolbar-left">
+                    <input type="text" id="search-teams" class="text-input" placeholder="🔍 Search teams...">
+                </div>
+                <div class="toolbar-right">
+                    <button id="btn-open-bulk-teams" class="btn btn-tonal">📋 Bulk Add Teams</button>
+                    <button id="btn-add-team" class="btn btn-primary">+ Add Team</button>
+                </div>
+            </div>
+
+            <div id="teams-grid" class="teams-grid">
+                <!-- Dynamically injected team cards -->
+            </div>
+
+            <div id="teams-empty" class="empty-state" style="display: none;">
+                <div class="empty-icon">🤖</div>
+                <div class="empty-title">No teams registered</div>
+                <p>Register your sumobot teams or click <strong>Bulk Add Teams</strong> to get started.</p>
+            </div>
+        </section>
+
+        <!-- 4. RULES & SETTINGS VIEW -->
+        <section id="view-settings" class="tab-view">
+            <div class="settings-grid">
+                <div class="settings-card">
+                    <h3>🥋 Match & Dohyo Rules</h3>
+                    <form id="form-rules-settings">
+                        <div class="form-group">
+                            <label class="form-label" for="setting-match-format">Match Format</label>
+                            <select id="setting-match-format" class="select-input full-input">
+                                <option value="best_of_3">Best of 3 Rounds (Standard Sumo: First to 2 Yuko)</option>
+                                <option value="best_of_5">Best of 5 Rounds (First to 3 Yuko)</option>
+                                <option value="single_round">Single Round (Sudden Death)</option>
+                            </select>
+                            <div class="form-hint">Number of rounds needed to win the match.</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="setting-round-time">Round Time Limit (Seconds)</label>
+                            <input type="number" id="setting-round-time" class="text-input full-input" min="30" max="600" step="15" value="180">
+                            <div class="form-hint">Standard duration (180s = 3 minutes).</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Points Allocation</label>
+                            <div style="display: flex; gap: 10px;">
+                                <div style="flex: 1;">
+                                    <label class="form-hint" for="setting-pts-win">Win (PTS)</label>
+                                    <input type="number" id="setting-pts-win" class="text-input full-input" min="0" max="10" value="3">
+                                </div>
+                                <div style="flex: 1;">
+                                    <label class="form-hint" for="setting-pts-draw">Draw (PTS)</label>
+                                    <input type="number" id="setting-pts-draw" class="text-input full-input" min="0" max="10" value="1">
+                                </div>
+                                <div style="flex: 1;">
+                                    <label class="form-hint" for="setting-pts-loss">Loss (PTS)</label>
+                                    <input type="number" id="setting-pts-loss" class="text-input full-input" min="0" max="10" value="0">
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="margin-top: 10px;">Save Rules</button>
+                    </form>
+                </div>
+
+                <div class="settings-card">
+                    <h3>⚡ Tournament Schedule Generator</h3>
+                    <p style="color: var(--md-on-surface-variant); font-size: 0.875rem;">
+                        Automatically pair teams and generate matches for the current championship.
+                    </p>
+                    <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 16px;">
+                        <button id="btn-trigger-schedule" class="btn btn-primary">Open Schedule Generator</button>
+                        <button id="btn-clear-matches" class="btn btn-tonal" style="color: #DC2626;">⚠️ Reset / Clear All Matches</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- =========================================================
+         MODALS & DIALOGS
+         ========================================================= -->
+
+    <!-- LIVE DOHYO REFEREE CONSOLE MODAL -->
+    <div id="modal-referee" class="referee-modal-overlay" role="dialog" aria-modal="true">
+        <div class="referee-console">
+            <div class="referee-top">
+                <div class="referee-match-info">
+                    <span id="ref-match-title">Match M01 — Round 1</span>
+                </div>
+                <button id="btn-close-referee" class="btn-icon-sm" style="font-size: 1.25rem;">✕</button>
+            </div>
+
+            <!-- Digital Timer Strip -->
+            <div class="timer-strip">
+                <div id="digital-clock" class="digital-clock">03:00</div>
+                <div class="timer-controls">
+                    <button id="btn-timer-start" class="timer-btn btn-start">▶ START</button>
+                    <button id="btn-timer-pause" class="timer-btn btn-pause">⏸ PAUSE</button>
+                    <button id="btn-timer-reset" class="timer-btn">↺ RESET</button>
+                    <button id="btn-timer-sub15" class="timer-btn">-15s</button>
+                    <button id="btn-timer-add15" class="timer-btn">+15s</button>
+                    <button id="btn-sound-toggle" class="timer-btn" title="Toggle Sound">🔊 SOUND</button>
+                </div>
+            </div>
+
+            <!-- Red vs Blue Dohyo Split Arena -->
+            <div class="dohyo-arena">
+                <!-- Red Corner -->
+                <div class="arena-half red-corner">
+                    <div>
+                        <div class="arena-corner-title">🔴 Red Corner (Higashi)</div>
+                        <div id="ref-red-name" class="arena-team-name">Red Team</div>
+                        <div id="ref-red-robot" class="arena-robot-name">Robot A</div>
+                        <div id="ref-red-dots" class="yuko-dots">
+                            <!-- Yuko round circles -->
+                        </div>
+                    </div>
+                    <div id="ref-red-score" class="arena-score-display">0</div>
+                    <div>
+                        <div class="point-actions">
+                            <button id="btn-red-add-pt" class="btn-point">+ POINT (YUKO)</button>
+                            <button id="btn-red-sub-pt" class="btn-point-sub">-1</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Blue Corner -->
+                <div class="arena-half blue-corner">
+                    <div>
+                        <div class="arena-corner-title">🔵 Blue Corner (Nishi)</div>
+                        <div id="ref-blue-name" class="arena-team-name">Blue Team</div>
+                        <div id="ref-blue-robot" class="arena-robot-name">Robot B</div>
+                        <div id="ref-blue-dots" class="yuko-dots">
+                            <!-- Yuko round circles -->
+                        </div>
+                    </div>
+                    <div id="ref-blue-score" class="arena-score-display">0</div>
+                    <div>
+                        <div class="point-actions">
+                            <button id="btn-blue-add-pt" class="btn-point">+ POINT (YUKO)</button>
+                            <button id="btn-blue-sub-pt" class="btn-point-sub">-1</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Referee Footer -->
+            <div class="referee-bottom">
+                <button id="btn-ref-draw" class="btn btn-tonal">Declare Draw / Tie</button>
+                <button id="btn-ref-finish" class="btn btn-primary" style="background-color: #16A34A;">✓ Finish & Save Match</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CHAMPIONSHIP MODAL -->
+    <div id="modal-champ" class="dialog-overlay" role="dialog" aria-modal="true">
+        <div class="dialog-card">
+            <div class="dialog-header">
+                <h3 id="modal-champ-title">New Championship</h3>
+                <button id="btn-close-champ-modal" class="btn-icon-sm">✕</button>
+            </div>
+            <form id="form-champ">
+                <div class="dialog-body">
+                    <input type="hidden" id="champ-id">
+                    <div class="form-group">
+                        <label class="form-label" for="champ-name-input">Championship Name *</label>
+                        <input type="text" id="champ-name-input" class="text-input full-input" required placeholder="e.g. RoboSumo Cup 2026">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="champ-category-input">Category / Weight Class</label>
+                        <input type="text" id="champ-category-input" class="text-input full-input" placeholder="e.g. Standard 3kg, Mini Sumo 500g, Lego Sumo">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="champ-format-input">Tournament Format</label>
+                        <select id="champ-format-input" class="select-input full-input">
+                            <option value="round_robin">Round Robin (All teams play each other)</option>
+                            <option value="double_round_robin">Double Round Robin (Home & Away)</option>
+                            <option value="custom">Custom / Open Matches</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="champ-notes-input">Notes / Location</label>
+                        <textarea id="champ-notes-input" class="text-input full-input" rows="2" placeholder="e.g. Arena Hall A, Tatami 1"></textarea>
+                    </div>
+                </div>
+                <div class="dialog-footer">
+                    <button type="button" id="btn-delete-champ" class="btn btn-danger" style="margin-right: auto; display: none;">Delete</button>
+                    <button type="button" id="btn-cancel-champ" class="btn btn-tonal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Championship</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- TEAM MODAL -->
+    <div id="modal-team" class="dialog-overlay" role="dialog" aria-modal="true">
+        <div class="dialog-card">
+            <div class="dialog-header">
+                <h3 id="modal-team-title">Add Team</h3>
+                <button id="btn-close-team-modal" class="btn-icon-sm">✕</button>
+            </div>
+            <form id="form-team">
+                <div class="dialog-body">
+                    <input type="hidden" id="team-id">
+                    <div class="form-group">
+                        <label class="form-label" for="team-name-input">Team Name *</label>
+                        <input type="text" id="team-name-input" class="text-input full-input" required placeholder="e.g. Iron Titan">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="team-robot-input">Robot Name</label>
+                        <input type="text" id="team-robot-input" class="text-input full-input" placeholder="e.g. Dozer v3">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="team-club-input">Club / School / City</label>
+                        <input type="text" id="team-club-input" class="text-input full-input" placeholder="e.g. Robotics Academy">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="team-color-input">Team Color</label>
+                        <input type="color" id="team-color-input" class="text-input" value="#2563EB" style="height: 40px; width: 80px; padding: 2px;">
+                    </div>
+                </div>
+                <div class="dialog-footer">
+                    <button type="button" id="btn-delete-team" class="btn btn-danger" style="margin-right: auto; display: none;">Delete</button>
+                    <button type="button" id="btn-cancel-team" class="btn btn-tonal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Team</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- BULK ADD TEAMS MODAL -->
+    <div id="modal-bulk-teams" class="dialog-overlay" role="dialog" aria-modal="true">
+        <div class="dialog-card">
+            <div class="dialog-header">
+                <h3>📋 Bulk Register Teams</h3>
+                <button id="btn-close-bulk-modal" class="btn-icon-sm">✕</button>
+            </div>
+            <form id="form-bulk-teams">
+                <div class="dialog-body">
+                    <p style="font-size: 0.85rem; color: var(--md-on-surface-variant); margin-top: 0;">
+                        Enter team names below (one team per line). You can optionally include robot name separated by a comma (e.g. <code>Team Alpha, Crusher</code>).
+                    </p>
+                    <textarea id="bulk-teams-textarea" class="text-input full-input" rows="8" placeholder="Team Alpha, Crusher&#10;Team Beta, Shredder&#10;Team Gamma, Vortex&#10;Team Delta, Goliath"></textarea>
+                </div>
+                <div class="dialog-footer">
+                    <button type="button" id="btn-cancel-bulk" class="btn btn-tonal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Register Teams</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- GENERATE SCHEDULE MODAL -->
+    <div id="modal-generate" class="dialog-overlay" role="dialog" aria-modal="true">
+        <div class="dialog-card">
+            <div class="dialog-header">
+                <h3>⚡ Generate Tournament Schedule</h3>
+                <button id="btn-close-gen-modal" class="btn-icon-sm">✕</button>
+            </div>
+            <form id="form-generate-schedule">
+                <div class="dialog-body">
+                    <div class="form-group">
+                        <label class="form-label" for="gen-format-select">Format</label>
+                        <select id="gen-format-select" class="select-input full-input">
+                            <option value="round_robin">Single Round Robin (Every team plays every team once)</option>
+                            <option value="double_round_robin">Double Round Robin (2 matches per pair)</option>
+                            <option value="custom_matches">Custom Number of Total Matches</option>
+                        </select>
+                    </div>
+                    <div id="group-custom-count" class="form-group" style="display: none;">
+                        <label class="form-label" for="gen-custom-count">Number of Matches to Generate</label>
+                        <input type="number" id="gen-custom-count" class="text-input full-input" min="1" max="200" value="10">
+                    </div>
+                    <div id="gen-summary" style="padding: 12px; background: var(--md-surface-container); border-radius: var(--radius-md); font-size: 0.85rem; margin-top: 10px;">
+                        Loading teams summary...
+                    </div>
+                </div>
+                <div class="dialog-footer">
+                    <button type="button" id="btn-cancel-gen" class="btn btn-tonal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Generate Schedule</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- CONFIRMATION MODAL -->
+    <div id="modal-confirm" class="dialog-overlay" role="dialog" aria-modal="true">
+        <div class="dialog-card" style="max-width: 400px;">
+            <div class="dialog-header">
+                <h3 id="confirm-title">Confirm Action</h3>
+            </div>
+            <div class="dialog-body">
+                <p id="confirm-message" style="margin: 0; font-size: 0.95rem;"></p>
+            </div>
+            <div class="dialog-footer">
+                <button id="btn-confirm-cancel" class="btn btn-tonal">Cancel</button>
+                <button id="btn-confirm-ok" class="btn btn-danger">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST SNACKBAR -->
+    <div id="snackbar" class="snackbar" hidden>
+        <span id="snackbar-text">Saved</span>
+    </div>
+
+    <script src="pb.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
